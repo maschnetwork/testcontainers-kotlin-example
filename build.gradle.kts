@@ -16,6 +16,8 @@ repositories {
 }
 
 dependencies {
+	implementation("redis.clients:jedis:3.1.0")
+	implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.9.+")
 	implementation("org.springframework.boot:spring-boot-starter-data-redis")
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
@@ -24,6 +26,8 @@ dependencies {
 	testImplementation("org.springframework.boot:spring-boot-starter-test") {
 		exclude(group = "org.junit.vintage", module = "junit-vintage-engine")
 	}
+	testImplementation("io.rest-assured:rest-assured:4.1.2")
+	testImplementation("io.rest-assured:rest-assured-all:4.1.2")
 }
 
 tasks.withType<Test> {
