@@ -5,37 +5,45 @@ import io.restassured.RestAssured.given
 import io.restassured.http.ContentType
 import io.restassured.response.Response
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.web.server.LocalServerPort
 import org.springframework.context.ApplicationContextInitializer
 import org.springframework.context.ConfigurableApplicationContext
+import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.http.HttpStatus
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.support.TestPropertySourceUtils
 import org.testcontainers.containers.GenericContainer
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ContextConfiguration(initializers = [TestContainersTest.Initializer::class])
+@ContextConfiguration(initializers = [TestContainersTest.RedisInitializer::class])
 class TestContainersTest {
 
 	@LocalServerPort
 	protected var port: Int = 0
+
+	@Autowired
+	private lateinit var redisTemplate : RedisTemplate<String, Team>
+
+	@AfterEach
+	fun clearRedis() {
+		redisTemplate.connectionFactory?.connection?.flushAll()
+	}
 
 
 	@Test
 	fun `should return 201 when creating a team`() {
 		val response = givenPostRequestSuccess("something")
 
-		val team = response.`as`(Team::class.java)
-
 		assertThat(response.statusCode).isEqualTo(HttpStatus.CREATED.value())
-		assertThat(team.name).isEqualTo("something")
 	}
 
 
 	@Test
-	fun `should get teams from cache when team is present`() {
+	fun `should get team from cache`() {
 		givenPostRequestSuccess("something")
 
 		val response = given()
@@ -48,6 +56,16 @@ class TestContainersTest {
 		assertThat(team.name).isEqualTo("something")
 	}
 
+	@Test
+	fun `should get no team from cache`() {
+		val response = given()
+				.port(port)
+				.get("/api/teams/something")
+
+
+		assertThat(response.statusCode).isEqualTo(HttpStatus.NOT_FOUND.value())
+	}
+
 	private fun givenPostRequestSuccess(name : String = "test"): Response {
 		return given()
 				.contentType(ContentType.JSON)
@@ -57,15 +75,14 @@ class TestContainersTest {
 	}
 
 
-	companion object {
-		val redisContainer = object : GenericContainer<Nothing>("redis:3-alpine") {
+	internal class RedisInitializer : ApplicationContextInitializer<ConfigurableApplicationContext> {
+
+		private val redisContainer = object : GenericContainer<Nothing>("redis:3-alpine") {
 			init {
 				withExposedPorts(6379)
 			}
 		}
-	}
 
-	internal class Initializer : ApplicationContextInitializer<ConfigurableApplicationContext> {
 		override fun initialize(configurableApplicationContext: ConfigurableApplicationContext) {
 			redisContainer.start()
 

@@ -3,6 +3,7 @@ package com.maschnetwork.testcontainers.config
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
+import com.maschnetwork.testcontainers.api.Team
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -46,10 +47,10 @@ class RedisConfiguration {
     }
 
     @Bean
-    fun redisTemplate(): RedisTemplate<*, *> {
-        val template = RedisTemplate<String, Any>()
+    fun redisTemplate(): RedisTemplate<String, Team> {
+        val template = RedisTemplate<String, Team>()
         template.setConnectionFactory(redisConnectionFactory())
-        template.keySerializer = GenericJackson2JsonRedisSerializer(objectMapper)
+        template.keySerializer = StringRedisSerializer()
         template.valueSerializer = GenericJackson2JsonRedisSerializer(objectMapper)
         return template
     }
