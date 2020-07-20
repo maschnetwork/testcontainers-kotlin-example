@@ -1,6 +1,7 @@
 package com.maschnetwork.testcontainers
 
 import com.maschnetwork.testcontainers.api.Team
+import com.maschnetwork.testcontainers.config.RedisInitializer
 import io.restassured.RestAssured.given
 import io.restassured.http.ContentType
 import io.restassured.response.Response
@@ -19,7 +20,7 @@ import org.springframework.test.context.support.TestPropertySourceUtils
 import org.testcontainers.containers.GenericContainer
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ContextConfiguration(initializers = [TestContainersTest.RedisInitializer::class])
+@ContextConfiguration(initializers = [RedisInitializer::class])
 class TestContainersTest {
 
 	@LocalServerPort
@@ -33,14 +34,12 @@ class TestContainersTest {
 		redisTemplate.connectionFactory?.connection?.flushAll()
 	}
 
-
 	@Test
 	fun `should return 201 when creating a team`() {
 		val response = givenPostRequestSuccess("something")
 
 		assertThat(response.statusCode).isEqualTo(HttpStatus.CREATED.value())
 	}
-
 
 	@Test
 	fun `should get team from cache`() {
@@ -73,25 +72,4 @@ class TestContainersTest {
 				.body(mapOf("name" to name))
 				.post("/api/teams")
 	}
-
-
-	internal class RedisInitializer : ApplicationContextInitializer<ConfigurableApplicationContext> {
-
-		private val redisContainer = object : GenericContainer<Nothing>("redis:3-alpine") {
-			init {
-				withExposedPorts(6379)
-			}
-		}
-
-		override fun initialize(configurableApplicationContext: ConfigurableApplicationContext) {
-			redisContainer.start()
-
-			TestPropertySourceUtils.addInlinedPropertiesToEnvironment(
-					configurableApplicationContext, "spring.redis.host=${redisContainer.containerIpAddress}")
-
-			TestPropertySourceUtils.addInlinedPropertiesToEnvironment(
-					configurableApplicationContext, "spring.redis.port=${redisContainer.firstMappedPort}")
-		}
-	}
-
 }

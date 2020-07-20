@@ -28,7 +28,7 @@ dependencies {
 	}
 	testImplementation("io.rest-assured:rest-assured:4.1.2")
 	testImplementation("io.rest-assured:rest-assured-all:4.1.2")
-	testImplementation("org.testcontainers:testcontainers:1.12.3")
+	implementation("org.testcontainers:testcontainers:1.12.3")
 }
 
 tasks.withType<Test> {

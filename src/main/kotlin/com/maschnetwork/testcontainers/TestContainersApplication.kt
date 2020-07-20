@@ -11,3 +11,10 @@ class TestContainersApplication
 fun main(args: Array<String>) {
 	runApplication<TestContainersApplication>(*args)
 }
+
+
+
+
+
+
+
