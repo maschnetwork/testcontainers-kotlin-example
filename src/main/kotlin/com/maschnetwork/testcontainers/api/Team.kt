@@ -8,10 +8,11 @@ import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import org.springframework.web.bind.annotation.*
 
+@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "@class")
+data class Team(val name: String)
 
 @RestController
 class TeamController(private val teamService: TeamService) {
-
 
     @GetMapping("/api/teams/{name}")
     fun getTeams(@PathVariable name : String) : ResponseEntity<Team> {
@@ -26,28 +27,19 @@ class TeamController(private val teamService: TeamService) {
 
 }
 
-@ResponseStatus(HttpStatus.NOT_FOUND)
-class NotFoundException (typeName : String) : RuntimeException("$typeName not found")
-
-interface TeamService {
-    fun getTeam(name: String) : Team?
-    fun createTeam(name: String): Team
-}
-
 @Service
-class TeamServiceImpl: TeamService {
+class TeamService {
 
     @Cacheable(cacheNames = ["team"], key = "#name")
-    override fun getTeam(name : String) : Team? {
+    fun getTeam(name : String) : Team? {
         return null
     }
 
     @CachePut(cacheNames = ["team"], key = "#name")
-    override fun createTeam(name : String) : Team  {
+    fun createTeam(name : String) : Team  {
         return Team(name = name)
     }
 }
 
-
-@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "@class")
-data class Team(val name: String)
+@ResponseStatus(HttpStatus.NOT_FOUND)
+class NotFoundException (typeName : String) : RuntimeException("$typeName not found")
