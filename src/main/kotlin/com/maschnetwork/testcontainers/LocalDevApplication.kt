@@ -12,11 +12,11 @@ import org.testcontainers.containers.GenericContainer
 
 fun main(args: Array<String>) {
     val application = createSpringApplication()
-    application?.addInitializers(RedisInitializer())
-    application?.run(*args)
+    application.addInitializers(RedisInitializer())
+    application.run(*args)
 }
 
-fun createSpringApplication(): SpringApplication? {
+fun createSpringApplication(): SpringApplication {
     return SpringApplication(TestContainersApplication::class.java)
 }
 
